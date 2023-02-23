@@ -1,0 +1,4 @@
+Convolutional NNs 
+
+What is a filter? 
+Filter is a set of multipliers that transform a pixel and its neighbours.
