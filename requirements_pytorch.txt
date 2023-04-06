@@ -3,3 +3,4 @@ ipykernel
 torch
 torchvision
 matplotlib
+Pillow
