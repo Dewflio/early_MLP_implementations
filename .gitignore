@@ -2,3 +2,4 @@
 *.tar.gz
 *.pdf
 /data/resnet18_set/
+__pycache__
