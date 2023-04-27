@@ -7,7 +7,7 @@ import os
 from collections import OrderedDict
 
 
-from classes import IMAGENET2012_CLASSES
+from .classes import IMAGENET2012_CLASSES
 class ResnetDataLoader:
     def __init__():
         pass
