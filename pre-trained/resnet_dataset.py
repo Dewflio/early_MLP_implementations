@@ -1,18 +1,13 @@
 # from: https://huggingface.co/datasets/imagenet-1k
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 from torchvision.io import read_image
 import pandas as pd
 import numpy as np
 import os
-from collections import OrderedDict
+from classes import IMAGENET2012_CLASSES
 
-
-from .classes import IMAGENET2012_CLASSES
-class ResnetDataLoader:
-    def __init__():
-        pass
-    def load_data(path):
-        pass
+def get_class_str(idx: int):
+    return list(IMAGENET2012_CLASSES.items())[idx][1]
 
 class ResnetImageDataset(Dataset):
     def __init__(self, img_dir, transform=None, target_transform=None):
@@ -49,6 +44,21 @@ class ResnetImageDataset(Dataset):
     
 
 if __name__ == "__main__":
+    
+    from torchvision import transforms
+
     img_dir = "././data/resnet18_set/images_unpacked"
     
-    ds = ResnetImageDataset(img_dir=img_dir)
+    transform_pipe = transforms.Compose([
+        transforms.ToPILImage(),
+        transforms.Resize([224,224]),
+        transforms.ToTensor()
+        ])
+    
+    ds = ResnetImageDataset(img_dir=img_dir, transform=transform_pipe)
+    dl = DataLoader(dataset=ds, batch_size=32, shuffle=False)
+    images, labels = next(iter(dl))
+    print(labels[0])
+    print(get_class_str(int(labels[0].item())))
+
+    
