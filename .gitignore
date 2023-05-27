@@ -1,5 +1,5 @@
 *.code-workspace
 *.tar.gz
 *.pdf
-/data/resnet18_set/
+/data
 __pycache__

@@ -10,21 +10,33 @@ def get_class_str(idx: int):
     return list(IMAGENET2012_CLASSES.items())[idx][1]
 
 class ResnetImageDataset(Dataset):
-    def __init__(self, img_dir, transform=None, target_transform=None):
+    def __init__(self, img_dir, img_num_cap=None, transform=None, target_transform=None):
         self.img_dir = img_dir
+        img_num_total = len(os.listdir(self.img_dir))
+
+        self.img_num_cap = img_num_cap if (img_num_cap != None) and (img_num_cap < img_num_total) else img_num_total
+
         self.transform = transform
         self.target_transform = target_transform
         self.img_labels = self.__create_labeled_list()
     
     def __create_labeled_list(self) -> pd.DataFrame:
-        dir_content = os.listdir(self.img_dir)   
+        dir_content = os.listdir(self.img_dir)
         array_2d = []
+        unique_labels = []
         for filename in dir_content:
             stripped_filename = filename.strip(".JPEG")
             split_filename = stripped_filename.split("_")
             key = split_filename[-1]
+            if key not in unique_labels:
+                unique_labels.append(key)
             label = list(IMAGENET2012_CLASSES.keys()).index(key)
             array_2d.append([filename, label])
+
+            if (len(array_2d) >= self.img_num_cap):
+                break
+        
+        print(f"The dataset contains {len(unique_labels)} unique classes")
         df = pd.DataFrame(array_2d ,columns=["filename", "label"])
         return df
 

@@ -5,9 +5,6 @@ from torch import Tensor
 from torchvision.models import resnet18, ResNet18_Weights
 import random
 
-from torchvision import transforms
-from PIL import Image
-
 class ShuffledLinearVariable(nn.modules.Linear):
     def __init__(self, *args, n_shuffled=None):
         super(ShuffledLinearVariable, self).__init__(*args)
