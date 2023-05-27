@@ -1,10 +1,10 @@
 # from: https://huggingface.co/datasets/imagenet-1k
 from torch.utils.data import Dataset, DataLoader
-from torchvision.io import read_image
+from torchvision.io import read_image, ImageReadMode
 import pandas as pd
 import numpy as np
 import os
-from classes import IMAGENET2012_CLASSES
+from resnet_classes import IMAGENET2012_CLASSES
 
 def get_class_str(idx: int):
     return list(IMAGENET2012_CLASSES.items())[idx][1]
@@ -34,7 +34,7 @@ class ResnetImageDataset(Dataset):
 
     def __getitem__(self, idx):
         img_path = os.path.join(self.img_dir, self.img_labels.iloc[idx, 0])
-        image = read_image(img_path)
+        image = read_image(img_path, mode= ImageReadMode.RGB)
         label = np.array(self.img_labels.iloc[idx, 1], dtype=float)
         if self.transform:
             image = self.transform(image)
