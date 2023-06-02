@@ -10,8 +10,6 @@ The prevention method we are proposing will rely on randomizing the order of the
 
 In this first part of our project, our aim is to test out the efficacy and the ideal configuration of the proposed prevention method by simulating the attacker's point of view. In other words, we want to test the accuracy of the reconstructed network based on the information that the attacker would be able to gather while our prevention method is applied to the network. Then we want to optimize it for the least overhead while still retaining a low enough accuracy. We are presuming that when we finally implement the actual prevention method the overhead will be increased proportionally to the number of neurons we shuffle. 
 
-[NOTE: WRITE SOME MORE]
-
 # Implementation
 
 In this section I will describe how I implemented the point of view of the attacker - which language and libraries I used, and how exactly the implementation works. The link to my implementation is here:
@@ -226,21 +224,116 @@ class ShuffledResnet18Variable(nn.Module):
         return x
 ```
 
+Later on I generalized the module to be able to get initialized with any type of resnet architecture:
+```
+class ShuffledResnetVariable(nn.Module):
+    def __init__(self, model):
+        super(ShuffledResnetVariable, self).__init__()
+        self.resnet_model = model
+        self.layers = list(self.resnet_model.children())
+        self.modified_layer = ShuffledLinearVariable(self.resnet_model.fc.in_features, self.resnet_model.fc.out_features, True)
+        self.modified_layer.weight = self.resnet_model.fc.weight
+        self.modified_layer.bias = self.resnet_model.fc.bias
+        self.layers[-1] = self.modified_layer
+    
+    def change_n_shuffled(self, n_shuffled: int):
+        return self.modified_layer.change_n_shuffled(n_shuffled=n_shuffled)
+
+    def forward(self, x: Tensor) -> Tensor:
+        for i, layer in enumerate(self.layers):
+            if i == len(self.layers) - 1:
+                x = torch.flatten(x, 1)
+            x = layer(x)
+        return x
+```
+
 This just gives us the ability to change the number of shuffled neurons during runtime using the method `change_n_shuffled()` if we want to test multiple configurations. 
 
 
 # Testing Configurations
 
-Finally to test out the overall accuracy of the networks that would be recovered by the attacker I downloaded some validation images that `resnet18` should be able to classify when unaltered. I downloaded them from: https://huggingface.co/datasets/imagenet-1k/tree/main/data - I opted to download the smallest of the files (6.67 GB compressed) called `val_images.tar.gz` that contains 50,000 labelled images which should be enough.
+Finally to test out the overall accuracy of the networks that would be recovered by the attacker I downloaded some validation images that `resnet50` should be able to classify when unaltered. I downloaded them from: https://huggingface.co/datasets/imagenet-1k/tree/main/data - I opted to download the smallest of the files (6.67 GB compressed) called `val_images.tar.gz` that contains 50,000 labelled images which should be enough.
 
-I then tested the accuracy of the network, using different numbers of neurons to shuffle...
-[TO BE ADDED - A TABLE OF ACCURACIES]
+I then tested the accuracy of the network, using different numbers of neurons to shuffle. Due to some time constraints, as of the time of writing this report, I have only been able to run a test on a one configuration of a neural network - the resnet50, with the fully connected (fc) classification layer shuffled. The following is a table of accuracies from the test run. The accuracy changes based on the number of neurons shuffled. The baseline is 0.798 or roughly 80% accuracy for the unaltered resnet50.
 
-[ALSO EXPERIMENT WITH SHUFFLING DIFFERENT LAYERS (OTHER THE THE FINAL CLASSIFICATION LAYER)]
+| Model       | Layer       | Num of samples| Num of shuffled neurons | Accuracy |
+| :---        | :---        | :---          | :---                    | :---     |
+| resnet50 |fc |1000 | 0    | 0.798 |
+| resnet50 |fc |1000 | 32   | 0.789 |
+| resnet50 |fc |1000 | 64   | 0.779 |
+| resnet50 |fc |1000 | 96   | 0.773  |
+| resnet50 |fc |1000 | 128  | 0.768 |
+| resnet50 |fc |1000 | 160  | 0.761 |
+| resnet50 |fc |1000 | 192  | 0.748 |
+| resnet50 |fc |1000 | 224  | 0.723 |
+| resnet50 |fc |1000 | 256  | 0.709 |
+| resnet50 |fc |1000 | 288  | 0.72  |
+| resnet50 |fc |1000 | 320  | 0.692 |
+| resnet50 |fc |1000 | 352  | 0.692 |
+| resnet50 |fc |1000 | 384  | 0.677 |
+| resnet50 |fc |1000 | 416  | 0.665 |
+| resnet50 |fc |1000 | 448  | 0.665 |
+| resnet50 |fc |1000 | 480  | 0.659 |
+| resnet50 |fc |1000 | 512  | 0.61 |
+| resnet50 |fc |1000 | 544  | 0.615 |
+| resnet50 |fc |1000 | 576  | 0.615 |
+| resnet50 |fc |1000 | 608  | 0.601 |
+| resnet50 |fc |1000 | 640  | 0.57 |
+| resnet50 |fc |1000 | 672  | 0.574 |
+| resnet50 |fc |1000 | 704  | 0.566 |
+| resnet50 |fc |1000 | 736  | 0.541 |
+| resnet50 |fc |1000 | 768  | 0.532 |
+| resnet50 |fc |1000 | 800  | 0.537 |
+| resnet50 |fc |1000 | 832  | 0.503 |
+| resnet50 |fc |1000 | 864  | 0.499 |
+| resnet50 |fc |1000 | 896  | 0.468 |
+| resnet50 |fc |1000 | 928  | 0.456 |
+| resnet50 |fc |1000 | 960  | 0.434 |
+| resnet50 |fc |1000 | 992  | 0.422 |
+| resnet50 |fc |1000 | 1024 | 0.398 | 
+| resnet50 |fc |1000 | 1056 | 0.397 | 
+| resnet50 |fc |1000 | 1088 | 0.385 | 
+| resnet50 |fc |1000 | 1120 | 0.373 | 
+| resnet50 |fc |1000 | 1152 | 0.382 | 
+| resnet50 |fc |1000 | 1184 | 0.352 | 
+| resnet50 |fc |1000 | 1216 | 0.35 |
+| resnet50 |fc |1000 | 1248 | 0.29 |
+| resnet50 |fc |1000 | 1280 | 0.297 | 
+| resnet50 |fc |1000 | 1312 | 0.271 | 
+| resnet50 |fc |1000 | 1344 | 0.248 | 
+| resnet50 |fc |1000 | 1376 | 0.25 |
+| resnet50 |fc |1000 | 1408 | 0.231 | 
+| resnet50 |fc |1000 | 1440 | 0.22 |
+| resnet50 |fc |1000 | 1472 | 0.21 |
+| resnet50 |fc |1000 | 1504 | 0.217 | 
+| resnet50 |fc |1000 | 1536 | 0.223 | 
+| resnet50 |fc |1000 | 1568 | 0.189 | 
+| resnet50 |fc |1000 | 1600 | 0.166 | 
+| resnet50 |fc |1000 | 1632 | 0.138 | 
+| resnet50 |fc |1000 | 1664 | 0.149 | 
+| resnet50 |fc |1000 | 1696 | 0.121 | 
+| resnet50 |fc |1000 | 1728 | 0.129 | 
+| resnet50 |fc |1000 | 1760 | 0.084 | 
+| resnet50 |fc |1000 | 1792 | 0.087 | 
+| resnet50 |fc |1000 | 1824 | 0.07 |
+| resnet50 |fc |1000 | 1856 | 0.06 |
+| resnet50 |fc |1000 | 1888 | 0.064 | 
+| resnet50 |fc |1000 | 1920 | 0.045 | 
+| resnet50 |fc |1000 | 1952 | 0.031 | 
+| resnet50 |fc |1000 | 1984 | 0.025 | 
+| resnet50 |fc |1000 | 2016 | 0.014 | 
+| resnet50 |fc |1000 | 2048 | 0.002 |
 
-# Conclusion
+In the table we can see that the acuracy decreases rather proportionally to the number of neurons shuffled. This fact is more visible in the following graphs. The y axis represents the accuracy, and the x axis represents the number of neurons shuffled. In this case the maximum number is 2048 as that is the number of neurons in the fc layer of resnet50.
 
-[TO BE ADDED]
+![resnet50 Accuracies](data/figures/output.png)
+
+![resnet50 Accuracies Regression](data/figures/output2.png)
+
+
+# Conclusion and Plan of Further Work
+
+From the test we ran it seems that choosing the fully connected classification layer of a network does not yield the best results - ideally we would want to modify a layer which produces a much lower accuracy score per the number neurons shuffled. To reiterate, we want the number of neurons shuffled to be as low as possible while still retaining a low enough accuracy, so that we minimize the computational overhead which would come with this countermeasure. In my following work, I will focus on finally running the tests on different layers as well as various different neural network architectures.  
 
 # References
 
