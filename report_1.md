@@ -1,4 +1,4 @@
-## Leonard Puškáč
+## Bc. Leonard Puškáč
 ## FIIT STU, Bratislava
 ## April 2023
 
@@ -337,4 +337,4 @@ From the test we ran it seems that choosing the fully connected classification l
 
 # References
 
-[TO BE ADDED]
+[1] Lejla Batina et al. CSI NN: Reverse Engineering of Neural Network Architectures Through Electromagnetic Side Channel. 2019. url: https://www.usenix.net/system/files/sec19-batina.pdf
